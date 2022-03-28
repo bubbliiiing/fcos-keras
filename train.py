@@ -12,7 +12,9 @@ from nets.fcos_training import bce, focal, get_lr_scheduler, iou
 from utils.callbacks import ExponentDecayScheduler, LossHistory
 from utils.dataloader import FcosDatasets
 from utils.utils import get_classes
-
+import tensorflow as tf
+gpu_options = tf.GPUOptions(per_process_gpu_memory_fraction=0.7)
+sess = tf.Session(config=tf.ConfigProto(gpu_options=gpu_options)) 
 
 if __name__ == "__main__":
     #---------------------------------------------------------------------#
@@ -45,7 +47,7 @@ if __name__ == "__main__":
     #------------------------------------------------------#
     #   input_shape     输入的shape大小，一定要是32的倍数
     #------------------------------------------------------#
-    input_shape     = [800, 800]
+    input_shape     = [640, 640]
 
     #----------------------------------------------------------------------------------------------------------------------------#
     #   训练分为两个阶段，分别是冻结阶段和解冻阶段。设置冻结阶段是为了满足机器性能不足的同学的训练需求。
@@ -138,7 +140,7 @@ if __name__ == "__main__":
     #                   keras里开启多线程有些时候速度反而慢了许多
     #                   在IO为瓶颈的时候再开启多线程，即GPU运算速度远大于读取图片的速度。
     #------------------------------------------------------------------#
-    num_workers         = 1
+    num_workers         = 2
 
     #------------------------------------------------------#
     #   train_annotation_path   训练图片路径和标签

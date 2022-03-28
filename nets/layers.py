@@ -6,6 +6,7 @@ from keras import backend as K
 from keras import constraints, initializers, regularizers
 from keras.layers import InputSpec, Layer
 
+
 class UpsampleLike(keras.layers.Layer):
     def call(self, inputs, **kwargs):
         source, target = inputs
@@ -34,9 +35,11 @@ class Locations(keras.layers.Layer):
         super(Locations, self).__init__(*args, **kwargs)
 
     def call(self, inputs, **kwargs):
-        features = inputs
-        feature_shapes = [K.shape(feature)[1:3] for feature in features]
-        locations_per_feature = []
+        feature_shapes          = [K.shape(feature)[1:3] for feature in inputs]
+        locations_per_feature   = []
+        #--------------------------------------#
+        #   对网格进行循环
+        #--------------------------------------#
         for feature_shape, stride in zip(feature_shapes, self.strides):
             h = feature_shape[0]
             w = feature_shape[1]
@@ -44,16 +47,19 @@ class Locations(keras.layers.Layer):
             shifts_x = K.arange(0, w * stride, step=stride, dtype=np.float32)
             shifts_y = K.arange(0, h * stride, step=stride, dtype=np.float32)
 
+            #--------------------------------------#
+            #   创建网格
+            #--------------------------------------#
             shift_x, shift_y = tf.meshgrid(shifts_x, shifts_y)
-            # (h * w, )
-            shift_x = K.reshape(shift_x, (-1,))
-            # (h * w, )
-            shift_y = K.reshape(shift_y, (-1,))
-            locations = K.stack((shift_x, shift_y), axis=1) + stride // 2
+            shift_x     = K.reshape(shift_x, (-1,))
+            shift_y     = K.reshape(shift_y, (-1,))
+            locations   = K.stack((shift_x, shift_y), axis=1) + stride // 2
             locations_per_feature.append(locations)
-        # (sum(h * w), 2)
+            
+        #--------------------------------------#
+        #   网格堆叠
+        #--------------------------------------#
         locations = K.concatenate(locations_per_feature, axis=0)
-        # (batch, sum(h * w), 2)
         locations = K.tile(K.expand_dims(locations, axis=0), (K.shape(inputs[0])[0], 1, 1))
         return locations
 

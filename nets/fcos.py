@@ -77,44 +77,43 @@ def FCOS(inputs_shape, num_classes, strides=[8, 16, 32, 64, 128], backbone="resn
 
     C3, C4, C5  = ResNet50(inputs)
     
-    # [75, 75, 512] -> [75, 75, 256]
+    # 80, 80, 512 -> 80, 80, 256
     P3           = Conv2D(256, kernel_size=1, strides=1, padding='same', name='C3_reduced', kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.02, seed=None))(C3)
-    # [38, 38, 1024] -> [38, 38, 256]
+    # 40, 40, 1024 -> 40, 40, 256
     P4           = Conv2D(256, kernel_size=1, strides=1, padding='same', name='C4_reduced', kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.02, seed=None))(C4)
-    # [19, 19, 2048] -> [19, 19, 256]
+    # 20, 20, 2048 -> 20, 20, 256
     P5           = Conv2D(256, kernel_size=1, strides=1, padding='same', name='C5_reduced', kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.02, seed=None))(C5)
     
-    # [19, 19, 256] -> [38, 38, 256] -> [38, 38, 512]
+    # 20, 20, 256 -> 40, 40, 256 -> 40, 40, 256
     P5_upsampled = UpsampleLike(name='P5_upsampled')([P5, P4])
     P4           = Add(name='P4_merged')([P5_upsampled, P4])
-    # [38, 38, 256] -> [75, 75, 256] -> [75, 75, 512]
+    # 40, 40, 256 -> 80, 80, 256 -> 80, 80, 256
     P4_upsampled = UpsampleLike(name='P4_upsampled')([P4, P3])
     P3           = Add(name='P3_merged')([P4_upsampled, P3])
 
-    # [75, 75, 256]
+    # 80, 80, 256
     P3 = Conv2D(256, kernel_size=3, strides=1, padding='same', name='P3', kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.02, seed=None))(P3)
-    # [38, 38, 256]
+    # 40, 40, 256
     P4 = Conv2D(256, kernel_size=3, strides=1, padding='same', name='P4', kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.02, seed=None))(P4)
-    # [19, 19, 256]
+    # 20, 20, 256
     P5 = Conv2D(256, kernel_size=3, strides=1, padding='same', name='P5', kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.02, seed=None))(P5)
-    # [10, 10, 256]
+    # 10, 10, 256
     P6 = Conv2D(256, kernel_size=3, strides=2, padding='same', name='P6', kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.02, seed=None))(P5)
-    # [5, 5, 256]
+    # 5, 5, 256
     P7 = Activation('relu', name='C6_relu')(P6)
     P7 = Conv2D(256, kernel_size=3, strides=2, padding='same', name='P7', kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.02, seed=None))(P7)
 
-    features =  [P3, P4, P5, P6, P7]
+    features = [P3, P4, P5, P6, P7]
 
     regression_model                = loc_head()
     classification_centerness_model = cls_head(num_classes)
 
-    regressions = []
+    regressions     = []
     classifications = []
-    centerness = []
+    centerness      = []
     for feature in features:
-        regression = regression_model.call(feature)
-        regression = ScaleExp(2)(regression)
-        classification_centerness = classification_centerness_model.call(feature)
+        regression                  = ScaleExp(2)(regression_model.call(feature))
+        classification_centerness   = classification_centerness_model.call(feature)
         
         regressions.append(regression)
         classifications.append(classification_centerness[0])
