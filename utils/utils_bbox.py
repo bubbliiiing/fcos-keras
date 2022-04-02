@@ -142,3 +142,82 @@ class BBoxUtility(object):
                 results[i][:, :4] = self.efficientdet_correct_boxes(box_xy, box_wh, input_shape, image_shape, letterbox_image)
 
         return results
+
+if __name__ == "__main__":
+    def generate_meshgrid(inputs, strides):
+        feature_shapes          = [np.shape(feature)[1:3] for feature in inputs]
+        locations_per_feature   = []
+        #--------------------------------------#
+        #   对网格进行循环
+        #--------------------------------------#
+        for feature_shape, stride in zip(feature_shapes, strides):
+            h = feature_shape[0]
+            w = feature_shape[1]
+
+            shifts_x = np.arange(0, w * stride, step=stride, dtype=np.float32)
+            shifts_y = np.arange(0, h * stride, step=stride, dtype=np.float32)
+
+            #--------------------------------------#
+            #   创建网格
+            #--------------------------------------#
+            shift_x, shift_y = np.meshgrid(shifts_x, shifts_y)
+            shift_x     = np.reshape(shift_x, (-1,))
+            shift_y     = np.reshape(shift_y, (-1,))
+            locations   = np.stack((shift_x, shift_y), axis=1) + stride // 2
+            locations_per_feature.append(locations)
+            
+        #--------------------------------------#
+        #   网格堆叠
+        #--------------------------------------#
+        locations = np.concatenate(locations_per_feature, axis=0)
+        locations = np.tile(np.expand_dims(locations, axis=0), (np.shape(inputs[0])[0], 1, 1))
+        return locations
+    
+    def decode_box(inputs):
+        locations, regression = inputs
+        x1 = locations[:, :, 0] - regression[:, :, 0]
+        y1 = locations[:, :, 1] - regression[:, :, 1]
+        x2 = locations[:, :, 0] + regression[:, :, 2]
+        y2 = locations[:, :, 1] + regression[:, :, 3]
+        # (batch_size, num_locations, 4)
+        bboxes = np.stack([x1, y1, x2, y2], axis=-1)
+        return bboxes
+    
+    input_shape = [640, 640]
+    strides     = [8, 16, 32, 64, 128]
+    
+    features    = []
+    regression  = []
+    for i in range(len(strides)):
+        features.append(np.random.randn(1, int(input_shape[0] / strides[i]), int(input_shape[1] / strides[i]), 256))
+        regression.append(np.random.uniform(1, 1.25, [1, int(input_shape[0] / strides[i]) * int(input_shape[1] / strides[i]), 4]))
+        
+    locations   = generate_meshgrid(features, strides)
+    regression  = np.exp(np.concatenate(regression, 1) * 4)
+    bboxes      = decode_box([locations, regression])
+        
+    import matplotlib.pyplot as plt
+    
+    last_all = int(input_shape[0] / strides[-1] * input_shape[1] / strides[-1])
+    
+    fig = plt.figure()
+    ax = fig.add_subplot(121)
+    plt.ylim(-300,900)
+    plt.xlim(-300,900)
+    plt.scatter(locations[0][-last_all:, 0], locations[0][-last_all:, 1], color='black')
+    plt.scatter(locations[0][-last_all:-last_all+3, 0], locations[0][-last_all:-last_all+3, 1], color='r')
+    plt.gca().invert_yaxis()
+    
+    ax = fig.add_subplot(122)
+    plt.ylim(-300,900)
+    plt.xlim(-300,900)
+    plt.scatter(locations[0][-last_all:, 0], locations[0][-last_all:, 1], color='black')
+    
+    plot_bboxes = np.array(bboxes[0, -last_all:, :], np.int32)
+    box_widths  = plot_bboxes[:, 2] - plot_bboxes[:, 0]
+    box_heights = plot_bboxes[:, 3] - plot_bboxes[:, 1]
+    for i in range(3):
+        rect = plt.Rectangle([plot_bboxes[i, 0], plot_bboxes[i, 1]], box_widths[i], box_heights[i], color="r", fill=False)
+        ax.add_patch(rect)
+    plt.gca().invert_yaxis()
+    plt.show()

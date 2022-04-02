@@ -77,17 +77,23 @@ def FCOS(inputs_shape, num_classes, strides=[8, 16, 32, 64, 128], backbone="resn
 
     C3, C4, C5  = ResNet50(inputs)
     
-    # 80, 80, 512 -> 80, 80, 256
+    #-------------------------------------#
+    #   80, 80, 512 -> 80, 80, 256
+    #   40, 40, 1024 -> 40, 40, 256
+    #   20, 20, 2048 -> 20, 20, 256
+    #-------------------------------------#
     P3           = Conv2D(256, kernel_size=1, strides=1, padding='same', name='C3_reduced', kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.02, seed=None))(C3)
-    # 40, 40, 1024 -> 40, 40, 256
     P4           = Conv2D(256, kernel_size=1, strides=1, padding='same', name='C4_reduced', kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.02, seed=None))(C4)
-    # 20, 20, 2048 -> 20, 20, 256
     P5           = Conv2D(256, kernel_size=1, strides=1, padding='same', name='C5_reduced', kernel_initializer=keras.initializers.normal(mean=0.0, stddev=0.02, seed=None))(C5)
     
-    # 20, 20, 256 -> 40, 40, 256 -> 40, 40, 256
+    #------------------------------------------------#
+    #   20, 20, 256 -> 40, 40, 256 -> 40, 40, 256
+    #------------------------------------------------#
     P5_upsampled = UpsampleLike(name='P5_upsampled')([P5, P4])
     P4           = Add(name='P4_merged')([P5_upsampled, P4])
-    # 40, 40, 256 -> 80, 80, 256 -> 80, 80, 256
+    #------------------------------------------------#
+    #   40, 40, 256 -> 80, 80, 256 -> 80, 80, 256
+    #------------------------------------------------#
     P4_upsampled = UpsampleLike(name='P4_upsampled')([P4, P3])
     P3           = Add(name='P3_merged')([P4_upsampled, P3])
 
