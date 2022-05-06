@@ -1,6 +1,7 @@
 import math
 
 import keras
+import numpy as np
 from keras.layers import *
 
 from nets.layers import (GroupNormalization, Locations, RegressBoxes, ScaleExp,
