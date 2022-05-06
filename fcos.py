@@ -7,7 +7,8 @@ from keras import backend as K
 from PIL import ImageDraw, ImageFont
 
 from nets.fcos import FCOS
-from utils.utils import cvtColor, get_classes, preprocess_input, resize_image
+from utils.utils import (cvtColor, get_classes, preprocess_input, resize_image,
+                         show_config)
 from utils.utils_bbox import BBoxUtility
 
 
@@ -69,9 +70,19 @@ class Fcos(object):
         #   获得种类和先验框的数量
         #---------------------------------------------------#
         self.class_names, self.num_classes = get_classes(self.classes_path)
+
+        #---------------------------------------------------#
+        #   画框设置不同的颜色
+        #---------------------------------------------------#
+        hsv_tuples  = [(x / self.num_classes, 1., 1.) for x in range(self.num_classes)]
+        self.colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
+        self.colors = list(map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)), self.colors))
         
         self.bbox_util = BBoxUtility(self.num_classes, nms_thresh=self.nms_iou)
+
         self.generate()
+
+        show_config(**self._defaults)
 
     #---------------------------------------------------#
     #   获得所有的分类
@@ -84,15 +95,6 @@ class Fcos(object):
         self.model.load_weights(self.model_path, by_name = True)
 
         print('{} model, and classes loaded.'.format(model_path))
-        #-----------------------#
-        #   画框设置不同的颜色
-        #-----------------------#
-        hsv_tuples = [(x / len(self.class_names), 1., 1.)
-                      for x in range(len(self.class_names))]
-        self.colors = list(map(lambda x: colorsys.hsv_to_rgb(*x), hsv_tuples))
-        self.colors = list(
-            map(lambda x: (int(x[0] * 255), int(x[1] * 255), int(x[2] * 255)),
-                self.colors))
 
     #---------------------------------------------------#
     #   检测图片
