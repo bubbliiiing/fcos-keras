@@ -49,21 +49,6 @@ class FcosDatasets(keras.utils.Sequence):
         cnt_targets = np.concatenate([cnt_targets, mask_pos], axis=-1)
         reg_targets = np.concatenate([reg_targets, mask_pos], axis=-1)
 
-        # print(cls_targets[0][cnt_targets[0][:,-1]!=1][0:2])
-        # print(cnt_targets[0][cnt_targets[0][:,-1]!=1])
-        # print(reg_targets[0][cnt_targets[0][:,-1]!=1])
-        # for i in range(self.batch_size):
-        #     temp_targets = reg_targets[i][reg_targets[i][:,-1]!=1]
-        #     temp_cls = np.argmax(cls_targets[i][cnt_targets[i][:,-1]!=1][:,:-1], -1)
-        #     print((temp_cls!=0).any())
-
-        #     for target,cls in zip(temp_targets, temp_cls):
-        #         draw_1=cv2.rectangle(image_data[i], (target[0],target[1]), (target[2],target[3]), (0,255,0), 2)
-        #         draw_1=cv2.putText(draw_1, str(cls), (target[0],target[1]), cv2.FONT_HERSHEY_SIMPLEX, 1.2, (0, 255, 0), 2)
-
-        #     cv2.imshow("123", draw_1)
-        #     cv2.waitKey(0)
-
         return image_data, {'classification': cls_targets,
                             'centerness'    : cnt_targets,
                             'regression'    : reg_targets,}
