@@ -26,7 +26,7 @@ class Fcos(object):
         #   验证集损失较低不代表mAP较高，仅代表该权值在验证集上泛化性能较好。
         #   如果出现shape不匹配，同时要注意训练时的model_path和classes_path参数的修改
         #--------------------------------------------------------------------------#
-        "model_path"        : 'model_data/Fcos_weights_voc.h5',
+        "model_path"        : 'model_data/fcos_weights_voc.h5',
         "classes_path"      : 'model_data/voc_classes.txt',
         #---------------------------------------------------------------------#
         #   输入图片的大小
@@ -65,6 +65,7 @@ class Fcos(object):
         self.__dict__.update(self._defaults)
         for name, value in kwargs.items():
             setattr(self, name, value)
+            self._defaults[name] = value 
             
         #---------------------------------------------------#
         #   获得种类和先验框的数量

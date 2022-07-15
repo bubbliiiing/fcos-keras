@@ -1,4 +1,4 @@
-## FCOS目标检测模型在Keras当中的实现
+## FCOS-Fully Convolutional One-Stage Object Detector目标检测模型在Keras当中的实现
 ---
 
 ## 目录
@@ -12,12 +12,12 @@
 8. [参考资料 Reference](#Reference)
 
 ## Top News
-**`2022-04`**:**仓库创建，大量可调整参数、支持step、cos学习率下降法、支持adam、sgd优化器选择、支持学习率根据batch_size自适应调整、新增图片裁剪。**  
+**`2022-07`**:**仓库创建，大量可调整参数、支持step、cos学习率下降法、支持adam、sgd优化器选择、支持学习率根据batch_size自适应调整、新增图片裁剪。**  
 
 ## 性能情况
 | 训练数据集 | 权值文件名称 | 测试数据集 | 输入图片大小 | mAP 0.5:0.95 | mAP 0.5 |
 | :-----: | :-----: | :------: | :------: | :------: | :-----: |
-| VOC07+12 | [fcos_weights_voc.h5](https://github.com/bubbliiiing/fcos-keras/releases/download/v1.0/fcos_weights_voc.h5) | VOC-Test07 | 640x640 | - | 81.56 
+| VOC07+12 | [fcos_weights_voc.h5](https://github.com/bubbliiiing/fcos-keras/releases/download/v1.0/fcos_weights_voc.h5) | VOC-Test07 | 640x640 | - | 84.13 
 
 ## 所需环境
 tensorflow-gpu==1.13.1  
@@ -97,7 +97,7 @@ _defaults = {
     #   验证集损失较低不代表mAP较高，仅代表该权值在验证集上泛化性能较好。
     #   如果出现shape不匹配，同时要注意训练时的model_path和classes_path参数的修改
     #--------------------------------------------------------------------------#
-    "model_path"        : 'model_data/Fcos_weights_voc.h5',
+    "model_path"        : 'model_data/fcos_weights_voc.h5',
     "classes_path"      : 'model_data/voc_classes.txt',
     #---------------------------------------------------------------------#
     #   输入图片的大小
